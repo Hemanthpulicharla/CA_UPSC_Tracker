@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ForumIAS Article</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; max-width: 800px; margin: 0 auto; padding: 20px; }
+        table { width: 100%; border-collapse: collapse; margin: 15px 0; }
+        table, th, td { border: 1px solid #ddd; padding: 8px; }
+        figure { text-align: center; margin: 15px 0; }
+        img { max-width: 100%; height: auto; }
+        .nested-list { margin-left: 20px; }
+    </style>
+</head>
+<body>
+    <div>
+        {% macro render_list(items, ordered=false) %}
+            {% if ordered %}
+                <ol>
+            {% else %}
+                <ul>
+            {% endif %}
+            
+            {% for item in items %}
+                {% if item is string %}
+                    <li>{{ item }}</li>
+                {% elif item is mapping %}
+                    <li>
+                        {{ item.text }}
+                        {% if item.nested_lists is defined %}
+                            <div class="nested-list">
+                                {% for nested_list in item.nested_lists %}
+                                    {% if nested_list.type == 'ul' %}
+                                        <ul>
+                                    {% else %}
+                                        <ol>
+                                    {% endif %}
+                                    
+                                    {% for nested_item in nested_list.items %}
+                                        <li>{{ nested_item }}</li>
+                                    {% endfor %}
+                                    
+                                    {% if nested_list.type == 'ul' %}
+                                        </ul>
+                                    {% else %}
+                                        </ol>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </li>
+                {% endif %}
+            {% endfor %}
+            
+            {% if ordered %}
+                </ol>
+            {% else %}
+                </ul>
+            {% endif %}
+        {% endmacro %}
+
+        {% for part in content %}
+            {% if part.type == 'header' %}
+                <h{{ part.level }}>{{ part.text }}</h{{ part.level }}>
+            {% elif part.type == 'paragraph' %}
+                <p>{{ part.text }}</p>
+            {% elif part.type == 'list' %}
+                {{ render_list(part.items, part.ordered) }}
+            {% elif part.type == 'table' %}
+                <table>
+                    {% for row in part.data %}
+                        <tr>
+                            {% for cell in row %}
+                                <td>{{ cell }}</td>
+                            {% endfor %}
+                        </tr>
+                    {% endfor %}
+                </table>
+            {% elif part.type == 'image' %}
+                <figure>
+                    <img src="{{ part.src }}" alt="{{ part.alt }}">
+                    {% if part.caption %}
+                        <figcaption>{{ part.caption }}</figcaption>
+                    {% endif %}
+                </figure>
+            {% elif part.type == 'blockquote' %}
+                <blockquote>{{ part.text }}</blockquote>
+            {% elif part.type == 'highlight' %}
+                <div class="highlight">{{ part.text }}</div>
+            {% elif part.type == 'text' %}
+                <p>{{ part.text }}</p>
+            {% elif part.type == 'other' %}
+                <p>({{ part.tag }}) {{ part.text }}</p>
+            {% endif %}
+        {% endfor %}
+    </div>
+</body>
+</html>

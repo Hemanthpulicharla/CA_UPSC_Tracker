@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PIB Backgrounders</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Arial', sans-serif;
+        }
+        .ministry-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border-radius: 10px;
+            background-color: white;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        .ministry-title {
+            font-size: 1.5rem;
+            color: #007bff;
+            margin-bottom: 10px;
+        }
+        .backgrounder-list {
+            list-style-type: none;
+            padding-left: 0;
+        }
+        .backgrounder-list li {
+            margin-bottom: 10px;
+        }
+        .backgrounder-list a {
+            color: #007bff;
+            text-decoration: none;
+        }
+        .backgrounder-list a:hover {
+            text-decoration: underline;
+        }
+        .date {
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="text-center mb-5">PIB Backgrounders</h1>
+
+        <form id="pibForm" class="mb-4">
+            <div class="row">
+                <!-- Ministry Dropdown -->
+                <div class="col-md-3">
+                    <label for="ministry">Ministry:</label>
+                    <select name="ministry" id="ministry" class="form-control">
+                        <option selected="selected" value="0">All Ministry</option>
+                        <option value="1">President's Secretariat</option>
+                        <option value="2">Vice President's Secretariat</option>
+                        <option value="3">Prime Minister's Office</option>
+                        <option value="2608">Lok Sabha Secretariat</option>
+                        <option value="61">Cabinet</option>
+                        <option value="62">Cabinet Committee Decisions</option>
+                        <option value="63">Cabinet Committee on Economic Affairs (CCEA)</option>
+                        <option value="68">Cabinet Secretariat</option>
+                        <option value="70">Cabinet Committee on Infrastructure</option>
+                        <option value="71">Cabinet Committee on Price</option>
+                        <option value="75">Cabinet Committee on Investment</option>
+                        <option value="80">AYUSH</option>
+                        <option value="72">Other Cabinet Committees</option>
+                        <option value="14">Department of Space</option>
+                        <option value="45">Department of Ocean Development</option>
+                        <option value="56">Department of Atomic Energy</option>
+                        <option value="35">Election Commission</option>
+                        <option value="1330">Finance Commission</option>
+                        <option value="27">Ministry of Agriculture &amp; Farmers Welfare</option>
+                        <option value="58">Ministry of Agro &amp; Rural Industries</option>
+                        <option value="41">Ministry of Chemicals and Fertilizers</option>
+                        <option value="26">Ministry of Civil Aviation</option>
+                        <option value="42">Ministry of Coal</option>
+                        <option value="16">Ministry of Commerce &amp; Industry</option>
+                        <option value="24">Ministry of Communications</option>
+                        <option value="60">Ministry of Company Affairs</option>
+                        <option value="39">Ministry of Consumer Affairs, Food &amp; Public Distribution</option>
+                        <option value="1440">Ministry of Cooperation</option>
+                        <option value="66">Ministry of Corporate Affairs</option>
+                        <option value="17">Ministry of Culture</option>
+                        <option value="33">Ministry of Defence</option>
+                        <option value="57">Ministry of Development of North-East Region</option>
+                        <option value="48">Ministry of Disinvestment</option>
+                        <option value="73">Ministry of Drinking Water &amp; Sanitation</option>
+                        <option value="67">Ministry of Earth Sciences</option>
+                        <option value="8">Ministry of Education</option>
+                        <option value="1323">Ministry of Electronics &amp; IT</option>
+                        <option value="30">Ministry of Environment, Forest and Climate Change</option>
+                        <option value="4">Ministry of External Affairs</option>
+                        <option value="15">Ministry of Finance</option>
+                        <option value="1340">Ministry of Fisheries, Animal Husbandry &amp; Dairying</option>
+                        <option value="40">Ministry of Food Processing Industries</option>
+                        <option value="31">Ministry of Health and Family Welfare</option>
+                        <option value="53">Ministry of Heavy Industries</option>
+                        <option value="5">Ministry of Home Affairs</option>
+                        <option value="47">Ministry of Housing &amp; Urban Affairs</option>
+                        <option value="11">Ministry of Information &amp; Broadcasting</option>
+                        <option value="1336">Ministry of Jal Shakti</option>
+                        <option value="21">Ministry of Labour &amp; Employment</option>
+                        <option value="7">Ministry of Law and Justice</option>
+                        <option value="51">Ministry of Micro, Small &amp; Medium Enterprises</option>
+                        <option value="44">Ministry of Mines</option>
+                        <option value="65">Ministry of Minority Affairs</option>
+                        <option value="28">Ministry of New and Renewable Energy</option>
+                        <option value="59">Ministry of Overseas Indian Affairs</option>
+                        <option value="10">Ministry of Panchayati Raj</option>
+                        <option value="12">Ministry of Parliamentary Affairs</option>
+                        <option value="6">Ministry of Personnel, Public Grievances &amp; Pensions</option>
+                        <option value="20">Ministry of Petroleum &amp; Natural Gas</option>
+                        <option value="79">Ministry of Planning</option>
+                        <option value="52">Ministry of Power</option>
+                        <option value="23">Ministry of Railways</option>
+                        <option value="69">Ministry of Road Transport &amp; Highways</option>
+                        <option value="43">Ministry of Rural Development</option>
+                        <option value="13">Ministry of Science &amp; Technology</option>
+                        <option value="46">Ministry of Ports, Shipping and Waterways</option>
+                        <option value="77">Ministry of Skill Development and Entrepreneurship</option>
+                        <option value="50">Ministry of Social Justice &amp; Empowerment</option>
+                        <option value="55">Ministry of Statistics &amp; Programme Implementation</option>
+                        <option value="18">Ministry of Steel</option>
+                        <option value="25">Ministry of Surface Transport</option>
+                        <option value="19">Ministry of Textiles</option>
+                        <option value="36">Ministry of Tourism</option>
+                        <option value="49">Ministry of Tribal Affairs</option>
+                        <option value="32">Ministry of Urban Development</option>
+                        <option value="38">Ministry of Water Resources, River Development and Ganga Rejuvenation</option>
+                        <option value="64">Ministry of Women and Child Development</option>
+                        <option value="9">Ministry of Youth Affairs and Sports</option>
+                        <option value="78">NITI Aayog</option>
+                        <option value="1325">PM Speech</option>
+                        <option value="74">EAC-PM</option>
+                        <option value="34">UPSC</option>
+                        <option value="37">Special Service and Features</option>
+                        <option value="1005">PIB Headquarters</option>
+                        <option value="1406">Office of Principal Scientific Advisor to GoI</option>
+                        <option value="1454">National Financial Reporting Authority</option>
+                        <option value="1458">Competition Commission of India</option>
+                        <option value="1470">IFSC Authority</option>
+                        <option value="1484">National Security Council Secretariat</option>
+                        <option value="2586">National Human Rights Commission</option>
+                        <option value="2611">Lokpal of India</option>
+                    </select>
+                </div>
+
+                <!-- Day Dropdown -->
+                <div class="col-md-2">
+                    <label for="day">Day:</label>
+                    <select name="day" id="day" class="form-control">
+                        <option selected="selected" value="0">All</option>
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                        <option value="6">6</option>
+                        <option value="7">7</option>
+                        <option value="8">8</option>
+                        <option value="9">9</option>
+                        <option value="10">10</option>
+                        <option value="11">11</option>
+                        <option value="12">12</option>
+                        <option value="13">13</option>
+                        <option value="14">14</option>
+                        <option value="15">15</option>
+                        <option value="16">16</option>
+                        <option value="17">17</option>
+                        <option value="18">18</option>
+                        <option value="19">19</option>
+                        <option value="20">20</option>
+                        <option value="21">21</option>
+                        <option value="22">22</option>
+                        <option value="23">23</option>
+                        <option value="24">24</option>
+                        <option value="25">25</option>
+                        <option value="26">26</option>
+                        <option value="27">27</option>
+                        <option value="28">28</option>
+                        <option value="29">29</option>
+                        <option value="30">30</option>
+                        <option value="31">31</option>
+                    </select>
+                </div>
+
+                <!-- Month Dropdown -->
+                <div class="col-md-2">
+                    <label for="month">Month:</label>
+                    <select name="month" id="month" class="form-control">
+                        <option selected="selected" value="0">All</option>
+                        <option value="1">January</option>
+                        <option value="2">February</option>
+                        <option value="3">March</option>
+                        <option value="4">April</option>
+                        <option value="5">May</option>
+                        <option value="6">June</option>
+                        <option value="7">July</option>
+                        <option value="8">August</option>
+                        <option value="9">September</option>
+                        <option value="10">October</option>
+                        <option value="11">November</option>
+                        <option value="12">December</option>
+                    </select>
+                </div>
+
+                <!-- Year Dropdown -->
+                <div class="col-md-2">
+                    <label for="year">Year:</label>
+                    <select name="year" id="year" class="form-control">
+                        <option value="2025">2025</option>
+                        <option selected="selected" value="2024">2024</option>
+                        <option value="2023">2023</option>
+                        <option value="2022">2022</option>
+                        <option value="2021">2021</option>
+                        <option value="2020">2020</option>
+                        <option value="2019">2019</option>
+                        <option value="2018">2018</option>
+                        <option value="2017">2017</option>
+                    </select>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="col-md-3">
+                    <button type="submit" class="btn btn-primary mt-4">Fetch</button>
+                </div>
+            </div>
+        </form>
+
+        {% if pib_backgrounders %}
+            {% for ministry, backgrounders in pib_backgrounders.items() %}
+            <div class="ministry-section">
+                <h2 class="ministry-title">{{ ministry }}</h2>
+                <ul class="backgrounder-list">
+                    {% for backgrounder in backgrounders %}
+                    <li>
+                        <a href="{{ backgrounder.url }}" target="_blank">{{ backgrounder.title }}</a> 
+                        <span class="date">- {{ backgrounder.date }}</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endfor %}
+        {% else %}
+            <p class="text-muted text-center">No recent backgrounders available.</p>
+        {% endif %}
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.getElementById('pibForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const ministry = document.getElementById('ministry').value;
+            const year = document.getElementById('year').value;
+            const month = document.getElementById('month').value;
+            const day = document.getElementById('day').value;
+            window.location.href = `/pib?ministry=${ministry}&year=${year}&month=${month}&day=${day}`;
+        });
+    </script>
+</body>
+</html>

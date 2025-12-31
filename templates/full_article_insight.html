@@ -1,0 +1,13 @@
+<div class="container">
+    <h1>Article Content</h1>
+    <div class="article-content">
+        {% for section in content %}
+        {% if section.type == 'h3' %}
+        <h3>{{ section.text }}</h3>
+        {% elif section.type == 'p' %}
+        <p>{{ section.text }}</p>
+        {% endif %}
+        {% endfor %}
+    </div>
+    <a href="{{ url_for('index') }}" class="btn btn-primary">Back to Articles</a>
+</div>
