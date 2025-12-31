@@ -13,7 +13,7 @@ from playwright_stealth import stealth_async
 app = Flask(__name__)
 cache = Cache(app, config={'CACHE_TYPE': 'simple'})
 
-API_KEY = 'AIzaSyBg3-XPBEXj9Erk1Zc-YDAFTkK9yIx-1BA'
+API_KEY = 'give you API Key'
 YOUTUBE_API_URL = 'https://www.googleapis.com/youtube/v3/playlistItems'
 PLAYLIST_API_URL = 'https://www.googleapis.com/youtube/v3/playlists'
 WATCHED_VIDEOS_FILE = 'watched_videos.txt'
@@ -62,9 +62,9 @@ async def fetch_playlist_title(session, playlist_id):
         print(f"Error in fetch_playlist_title for {playlist_id}: {e}")
     return None
 
-REDDIT_CLIENT_ID = 't8iBT4qixHudVJrC62J_zw'
-REDDIT_CLIENT_SECRET = 'GilsWCFm4d6MiGevxO1YJEiB8SPDPA' 
-REDDIT_USER_AGENT = 'upsc_tracker by /u/YOUR_REDDIT_USERNAME' 
+REDDIT_CLIENT_ID = 'GIve yours'
+REDDIT_CLIENT_SECRET = 'Give yours' 
+REDDIT_USER_AGENT = 'upsc_tracker by [account name]' 
 
 # Initialize PRAW
 reddit = praw.Reddit(
@@ -1385,4 +1385,4 @@ async def scrape_TH_learning(article_url_th):
 
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=int(os.environ.get("PORT", 5000)))
+    app.run(debug=True, port=5000)
