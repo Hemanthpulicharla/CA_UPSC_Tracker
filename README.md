@@ -18,6 +18,7 @@ Each transition meant:
 
 ### The Solution
 I realized I needed a **single source of truth** - one platform that aggregates quality current affairs from trusted sources, organized intelligently, and presented in a distraction-free environment. Not just another news aggregator, but a tool specifically designed for UPSC preparation workflow.
+
 *That's when this project was born*. 
 --- 
 
@@ -35,7 +36,7 @@ git clone https://github.com/Hemanthpulicharla/CA_UPSC_Tracker.git
 cd CA_UPSC_Tracker
 ```
 ### 2. Set up Environment Variables
-The application uses two APIs(Both of them are not needed for covering CA from websites) - Youtube API (can be found [here] (https://console.cloud.google.com/apis/library/youtube.googleapis.com)). and reddit API (can be found [here](https://www.reddit.com/prefs/apps)). 
+The application uses two APIs(Both of them are not needed for covering CA from websites) - Youtube API (can be found [here](https://console.cloud.google.com/apis/library/youtube.googleapis.com)) and reddit API (can be found [here](https://www.reddit.com/prefs/apps)). 
 Create a `.env` file in the root directory:
 ```bash
 # Example .env file
@@ -88,9 +89,8 @@ If you notice a specific source is not updating or have suggestions for new feat
 **Contact Developer:** [pulicharlahemu@gmail.com](mailto:pulicharlahemu@gmail.com)
 
 ---
-*Built by an aspirant, for aspirants. Let's make the prep a bit more efficient.*
-
 ***
 The code might not be perfect, the scrapers might occasionally break, but the intention is pure: to make one small part of this incredibly challenging journey a bit easier for all of us.
 ---
+*Built by an aspirant, for aspirants. Let's make the prep a bit more efficient.*
 Star ⭐ this repo if it helped you!
