@@ -155,10 +155,6 @@
                             <div class="text-center">
                                 <a href="{{url_for('bilateral_documents')}}"><h5>MEA Bilaterals</h5></a>
                             </div>
-                            <hr class="vr" style="height: 50px; width: 3px; background-color: #ccc; margin: 0 20px;">
-                            <div class="text-center">
-                                <a href="{{url_for('prs_india')}}"><h5>PRS India</h5></a>
-                            </div>
                             <hr class="vr" style="height: 50px; width: 1px; background-color: #ccc; margin: 0 20px;">
                             <div class="text-center">
                                 <a href="{{url_for('prs_india_bills')}}"><h5>PRS Bills</h5></a>
@@ -254,33 +250,48 @@
             </div>
         </div>
         <div class="card mt-5">
-            <div class="card-header text-center py-3" data-bs-toggle="collapse" data-bs-target="#collapseForum">
-                <h2 class="mb-0 d-flex justify-content-between align-items-center justify-content-center">
-                    <span><i class="fas fa-newspaper me-2"></i>FORUM CA</span>
-                    <i class="fas fa-chevron-down toggle-icon" style="font-size: 0.7em;"></i>
-                </h2>
-            </div>
-            <div id="collapseForum" class="collapse show">
-                <div class="card-body">
+    <div class="card-header text-center py-3" data-bs-toggle="collapse" data-bs-target="#collapseForum">
+        <h2 class="mb-0 d-flex justify-content-between align-items-center justify-content-center">
+            <span><i class="fas fa-newspaper me-2"></i>FORUM CA</span>
+            <i class="fas fa-chevron-down toggle-icon" style="font-size: 0.7em;"></i>
+        </h2>
+    </div>
+    <div id="collapseForum" class="collapse show">
+        <div class="card-body">
+            
+            {% if forum_ca %}
+                {% for section in forum_ca %}
+                <div class="mb-4">
+                    <h4 class="mb-3">{{ section.section }}</h4>
                     <div class="row">
-                        {% for section in forum_ca %}
-                        <div class="col-md-4 mb-4">
-                            <div class="card">
+                        {% for article in section.articles %}
+                        <div class="col-md-6 mb-3">
+                            <div class="card h-100">
                                 <div class="card-body">
-                                    <h2>{{ section.section }}</h2>
-                                    <ul>
-                                        {% for article in section.articles %}
-                                            <li><a href="{{ url_for('forumias_article', url=article.url) }}">{{ article.title }}</a></li>
-                                        {% endfor %}
-                                    </ul>
+                                    <h6 class="card-title">
+                                        <a href="{{ article.url }}" target="_blank" class="text-decoration-none">
+                                            {{ article.title }}
+                                        </a>
+                                    </h6>
+                                    {% if article.date %}
+                                    <p class="text-muted mb-2">
+                                        <i class="fas fa-calendar-alt me-1"></i>
+                                        <small>{{ article.date }}</small>
+                                    </p>
+                                    {% endif %}
                                 </div>
                             </div>
                         </div>
                         {% endfor %}
                     </div>
                 </div>
-            </div>
+                {% endfor %}
+            {% else %}
+                <p class="text-center text-muted">No articles available</p>
+            {% endif %}
         </div>
+    </div>
+</div>
         <div class="card mt-5">
             <div class="card-header text-center py-3" data-bs-toggle="collapse" data-bs-target="#collapseORF">
                 <h2 class="mb-0 d-flex justify-content-between align-items-center justify-content-center">

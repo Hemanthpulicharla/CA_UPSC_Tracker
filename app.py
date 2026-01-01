@@ -6,6 +6,7 @@ from bs4 import BeautifulSoup, NavigableString
 from playwright.async_api import async_playwright
 from datetime import datetime, timedelta, timezone
 import os
+import calendar
 import praw
 import re
 from playwright_stealth import stealth_async
@@ -20,7 +21,6 @@ REDDIT_USER_AGENT = os.environ.get('REDDIT_USER_AGENT')
 app = Flask(__name__)
 cache = Cache(app, config={'CACHE_TYPE': 'simple'})
 
-API_KEY = 'give you API Key'
 YOUTUBE_API_URL = 'https://www.googleapis.com/youtube/v3/playlistItems'
 PLAYLIST_API_URL = 'https://www.googleapis.com/youtube/v3/playlists'
 WATCHED_VIDEOS_FILE = 'watched_videos.txt'
@@ -68,10 +68,7 @@ async def fetch_playlist_title(session, playlist_id):
     except Exception as e:
         print(f"Error in fetch_playlist_title for {playlist_id}: {e}")
     return None
-
-REDDIT_CLIENT_ID = 'GIve yours'
-REDDIT_CLIENT_SECRET = 'Give yours' 
-REDDIT_USER_AGENT = 'upsc_tracker by [account name]' 
+ 
 
 reddit = praw.Reddit(
     client_id=REDDIT_CLIENT_ID,
@@ -412,6 +409,7 @@ async def index():
             scrape_forumias(),
             scrape_insights_articles() 
         ]
+        forum_ca = await scrape_forumias_combined()
         results = await asyncio.gather(*tasks_to_run, return_exceptions=True)
 
         if not isinstance(results[0], Exception): spotlight_episodes = results[0]
@@ -462,10 +460,10 @@ async def index():
                            pib_backgrounders=pib_backgrounders_result or {}, 
                            subreddits=SUBREDDITS,
                            articles=indian_express_articles_data or [], 
-                           orfarticles=orf_articles_data or [], 
-                           forum_ca=forum_ca_result or [], 
+                           orfarticles=orf_articles_data or [],  
                            pibfacts=pib_facts_result or {},
-                           insightarticles=insights_articles_result or []
+                           insightarticles=insights_articles_result or [],
+                           forum_ca=forum_ca
                            ) 
 
 @app.route('/unseen_videos/<playlist_id>')
@@ -661,7 +659,7 @@ async def bilateral_documents():
     return render_template('bilateral_documents.html', documents=documents_data or [])
 
 async def scrape_prs_india():
-    cards_data = [] # Renamed
+    cards_data = []
     try:
         url = "https://prsindia.org"
         async with aiohttp.ClientSession() as session:
@@ -709,48 +707,68 @@ async def prs_india():
     return render_template('prsindia.html', cards=scraped_cards or [])
 
 
-async def scrape_prs_bills(session, search_keyword=None, year=None):
+async def scrape_prs_bills(session, search_keyword=None, year=None, status=None):
     bills_data = []
     try:
-        base_url = "https://prsindia.org/billtrack/parliament"
+        base_url = "https://prsindia.org/billtrack/category/billtrack"
         params = {}
+        
         if search_keyword:
-            params['title'] = search_keyword
+            params['BillActsBillsParliamentSearch[title]'] = search_keyword
+        if status:
+            params['BillActsBillsParliamentSearch[bill_status_id]'] = status
         if year:
-            params['field_date_of_introduction_value'] = year
-
+            params['BillActsBillsParliamentSearch[date_of_introduction]'] = year
+            
         async with session.get(base_url, params=params, timeout=20) as response:
             if response.status != 200:
                 print(f"Failed to fetch PRS India bills data: {response.status}")
                 return []
+            
             content = await response.text()
             soup = BeautifulSoup(content, "html.parser")
-
+            
+           
             for row in soup.find_all('div', class_='views-row'):
-                title_tag = row.find('h3', class_='cate')
-                status_tag = row.find('div', class_='views-field-field-bill-status')
-
-                if title_tag and title_tag.a and status_tag:
-                    bill_url = title_tag.a['href']
-                    if not bill_url.startswith('http'):
-                        bill_url = f"https://prsindia.org{bill_url}" if bill_url.startswith('/') else f"https://prsindia.org/{bill_url}"
-                    
-                    bills_data.append({
-                        'title': title_tag.a.text.strip(),
-                        'url': bill_url,
-                        'status': status_tag.text.strip()
-                    })
+                
+                title_div = row.find('div', class_='views-field-title-field')
+                status_div = row.find('div', class_='views-field-field-bill-status')
+                
+                if title_div and status_div:
+                    title_tag = title_div.find('h3', class_='cate')
+                    if title_tag and title_tag.a:
+                        bill_url = title_tag.a['href']
+                        if not bill_url.startswith('http'):
+                            bill_url = f"https://prsindia.org{bill_url}"
+                        
+                        status_span = status_div.find('span')
+                        status_text = status_span.text.strip() if status_span else "Unknown"
+                        
+                        bills_data.append({
+                            'title': title_tag.a.text.strip(),
+                            'url': bill_url,
+                            'status': status_text
+                        })
     except Exception as e:
         print(f"Error scraping PRS India bills: {e}")
+    
     return bills_data
+
 
 @app.route('/prsindia_bills')
 async def prs_india_bills():
     search_keyword = request.args.get('search', '')
     year = request.args.get('year', str(datetime.now().year))
+    status = request.args.get('status', '')
+    
     async with aiohttp.ClientSession() as session:
-        bills = await scrape_prs_bills(session, search_keyword, year)
-    return render_template('prsindia_bills.html', bills=bills, search_keyword=search_keyword, year=year)
+        bills = await scrape_prs_bills(session, search_keyword, year, status)
+    
+    return render_template('prsindia_bills.html', 
+                          bills=bills, 
+                          search_keyword=search_keyword, 
+                          year=year,
+                          status=status)
 
 
 async def scrape_current_affairs_iasgyan():
@@ -1194,160 +1212,64 @@ async def scrape_orf_articles():
     unique_data.sort(key=lambda x: x['date_obj'], reverse=True)
     return unique_data
 
+async def scrape_forumias(url_path="7pm"):
+    url = f"https://forumias.com/blog/{url_path}/"
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+    }
 
-async def scrape_forumias():
-    sections_data = []
-    try:
-       
-        url = "https://forumias.com/blog/7pm/"
-        
-        headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-        }
-
-        async with aiohttp.ClientSession(headers=headers) as session:
-            async with session.get(url, timeout=20) as response:
-                if response.status != 200:
-                    print(f"Failed to fetch ForumIAS CA links: {response.status}")
-                    return []
-                content = await response.text()
-                soup = BeautifulSoup(content, "html.parser")
-
-                archive_container = soup.find('div', class_='ajax-cat-archive-output')
+    async with aiohttp.ClientSession(headers=headers) as session:
+        async with session.get(url, timeout=15) as response:
+            if response.status != 200:
+                return []
+            
+            html = await response.text()
+            soup = BeautifulSoup(html, "html.parser")
+            
+            sections_data = []
+            articles_list = []
+            date_groups = soup.find_all('div', class_='cat-archive-date-group')
+            
+            for group in date_groups:
+                date_div = group.find('div', class_='post-date')
+                date_text = date_div.get_text(" ", strip=True) if date_div else ""
                 
-                if archive_container:
-                    current_section_title = "Latest 7 PM Editorials"
-                    articles_in_section = []
+                links = group.find_all('a')
+                for a in links:
+                    articles_list.append({
+                        'title': a.get_text(strip=True),
+                        'url': a.get('href'),
+                        'date': date_text
+                    })
 
-                    for date_group in archive_container.find_all('div', class_='cat-archive-date-group'):
-                        
-                        
-                        date_div = date_group.find('div', class_='post-date')
-                        date_text = date_div.text.strip() if date_div else ""
-                        
-                     
-                        ul_list = date_group.find('ul', class_='cat-archive-list')
-                        if ul_list:
-                            for li in ul_list.find_all('li'):
-                                a_tag = li.find('a')
-                                if a_tag and a_tag.get('href'):
-                                    title = a_tag.text.strip()
-                                    if date_text:
-                                        title = f"[{date_text}] {title}"
-                                        
-                                    articles_in_section.append({
-                                        'title': title,
-                                        'url': a_tag['href']
-                                    })
-
-                    if articles_in_section:
-                        sections_data.append({
-                            'section': current_section_title,
-                            'articles': articles_in_section
-                        })
-                else:
-                    print("ForumIAS: No archive output found.")
-
-    except Exception as e:
-        print(f"Error scraping ForumIAS CA links: {e}")
-    return sections_data
-
-
-async def scrape_forumias_article(article_url):
-    content_parts_forum = []
-    try:
-        headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-        }
-        
-        async with aiohttp.ClientSession(headers=headers) as session:
-            async with session.get(article_url, timeout=30) as response:
-                if response.status != 200:
-                    print(f"Failed to fetch ForumIAS article content from {article_url}: {response.status}")
-                    return [{'type':'error', 'text': f'Failed to fetch: {response.status}'}]
+            if articles_list:
+                sections_data.append({
+                    'section': f"ForumIAS {url_path.upper()} Editorials",
+                    'articles': articles_list
+                })
                 
-                content = await response.text()
-                soup = BeautifulSoup(content, "html.parser")
+            return sections_data
 
-                article_content_div = soup.find('div', class_='entry-content')
-                
-                if not article_content_div:
-                    print(f"ForumIAS: Article content div 'entry-content' not found for {article_url}")
-                    return [{'type':'error', 'text': 'Main content area not found.'}]
+async def scrape_forumias_combined():
+    results = await asyncio.gather(
+        scrape_forumias("7pm"),
+        scrape_forumias("9pm")
+    )
+    return [item for sublist in results for item in sublist]
 
-                for garbage in article_content_div.find_all(['div'], class_=re.compile(r'mobile_ad|web_ad|sharedaddy|robots-nocontent')):
-                    garbage.decompose()
-
-                for element in article_content_div.children:
-                    if isinstance(element, NavigableString):
-                        text = str(element).strip()
-                        if text:
-                            content_parts_forum.append({'type': 'text', 'text': text})
-                        continue
-
-                    if not hasattr(element, 'name') or not element.name:
-                        continue
-
-                    tag_name = element.name
-                    text_content = element.get_text(separator=" ", strip=True)
-
-                    if tag_name == 'p':
-                        if text_content:
-                            content_parts_forum.append({'type': 'paragraph', 'text': text_content})
-                    
-                    elif tag_name in ['h1', 'h2', 'h3', 'h4', 'h5', 'h6']:
-                        content_parts_forum.append({'type': 'header', 'level': tag_name[1], 'text': text_content})
-                    
-                    elif tag_name in ['ul', 'ol']:
-                        list_items = []
-                        for li in element.find_all('li', recursive=False):
-                            li_text = li.get_text(separator=" ", strip=True)
-                            if li_text:
-                                list_items.append({'text': li_text})
-                        if list_items:
-                            content_parts_forum.append({'type': 'list', 'ordered': tag_name == 'ol', 'items': list_items})
-                    
-                    elif tag_name == 'table':
-                       
-                        rows = []
-                        for tr in element.find_all('tr'):
-                            cells = [td.get_text(separator=" ", strip=True) for td in tr.find_all(['th', 'td'])]
-                            rows.append(cells)
-                        if rows:
-                            content_parts_forum.append({'type': 'table', 'data': rows})
-                    
-                    elif tag_name == 'figure' or (tag_name == 'div' and 'wp-caption' in element.get('class', [])):
-                        img = element.find('img')
-                        if img and img.get('src'):
-                            caption = element.find('figcaption')
-                            caption_text = caption.get_text(strip=True) if caption else ''
-                            content_parts_forum.append({
-                                'type': 'image',
-                                'src': img['src'],
-                                'alt': img.get('alt', ''),
-                                'caption': caption_text
-                            })
-                    
-                    elif tag_name == 'blockquote':
-                        content_parts_forum.append({'type': 'blockquote', 'text': text_content})
-
-    except Exception as e:
-        print(f"An error occurred in scrape_forumias_article for {article_url}: {e}")
-        content_parts_forum.append({'type':'error', 'text': f'Error processing article: {e}'})
-        
-    return content_parts_forum
 
 
 @app.route('/forumias')
 async def forumias():
-    scraped_sections = await scrape_forumias()
-    return render_template('forumias.html', sections=scraped_sections or [])
+    scraped_sections = await scrape_forumias_combined()
+    return render_template('forumias.html', sections=scraped_sections)
 
-@app.route('/forumias_article/<path:url>')
-async def forumias_article(url):
-    article_content_data = await scrape_forumias_article(url) 
-    return render_template('forumias_article.html', content=article_content_data)
-
+@app.route('/forumias/<section>')
+async def forumias_section(section):
+    if section not in ['7pm', '9pm']:
+        return "Invalid section", 404
+    scraped_sections = await scrape_forumias(section)
+    return render_template('forumias.html', sections=scraped_sections)
 
 @app.route('/TH_article/<path:url>')
 async def show_th_article(url):
@@ -1392,8 +1314,4 @@ async def scrape_TH_learning(article_url_th):
 
 
 if __name__ == '__main__':
-<<<<<<< HEAD
     app.run(debug=True, port=5000)
-=======
-    app.run(debug=True, port=5000)
->>>>>>> 91306b3e5b0963aeac58a2ff69874e54620f291b
