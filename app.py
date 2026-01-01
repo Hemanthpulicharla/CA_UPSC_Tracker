@@ -9,11 +9,17 @@ import os
 import praw
 import re
 from playwright_stealth import stealth_async
+from dotenv import load_dotenv
+
+load_dotenv()
+API_KEY = os.environ.get('API_KEY')
+REDDIT_CLIENT_ID = os.environ.get('REDDIT_CLIENT_ID')
+REDDIT_CLIENT_SECRET = os.environ.get('REDDIT_CLIENT_SECRET')
+REDDIT_USER_AGENT = os.environ.get('REDDIT_USER_AGENT')
 
 app = Flask(__name__)
 cache = Cache(app, config={'CACHE_TYPE': 'simple'})
 
-API_KEY = 'AIzaSyBg3-XPBEXj9Erk1Zc-YDAFTkK9yIx-1BA'
 YOUTUBE_API_URL = 'https://www.googleapis.com/youtube/v3/playlistItems'
 PLAYLIST_API_URL = 'https://www.googleapis.com/youtube/v3/playlists'
 WATCHED_VIDEOS_FILE = 'watched_videos.txt'
@@ -62,11 +68,7 @@ async def fetch_playlist_title(session, playlist_id):
         print(f"Error in fetch_playlist_title for {playlist_id}: {e}")
     return None
 
-REDDIT_CLIENT_ID = 't8iBT4qixHudVJrC62J_zw'
-REDDIT_CLIENT_SECRET = 'GilsWCFm4d6MiGevxO1YJEiB8SPDPA' 
-REDDIT_USER_AGENT = 'upsc_tracker by /u/YOUR_REDDIT_USERNAME' 
 
-# Initialize PRAW
 reddit = praw.Reddit(
     client_id=REDDIT_CLIENT_ID,
     client_secret=REDDIT_CLIENT_SECRET,
@@ -282,30 +284,22 @@ async def scrape_pib_asp_net(url, ministry=None, year=None, month=None, day=None
             'Referer': url
         }
 
-        # Use a session to persist cookies (ASP.NET_SessionId)
         async with aiohttp.ClientSession(headers=headers) as session:
-            # 1. GET the page to get ViewState and Cookies
             async with session.get(url, ssl=False, timeout=30) as response:
                 if response.status != 200:
                     return []
                 html = await response.text()
                 soup = BeautifulSoup(html, "html.parser")
 
-            # 2. Extract ALL input values (hidden & visible) to mimic browser state perfectly
             form_data = {}
             for input_tag in soup.find_all('input'):
                 if input_tag.get('name'):
                     form_data[input_tag.get('name')] = input_tag.get('value', '')
 
-            # 3. Update with user filters
-            # Ensure we don't send 'None', default to '0' (All) or existing defaults
             ministry_val = ministry if ministry and ministry != '0' else '0'
             year_val = year if year else '2024'
             month_val = month if month else '0'
             day_val = day if day else '0'
-
-            # ASP.NET specific triggers. 
-            # We trigger the Year dropdown to force a refresh of the list
             overrides = {
                 '__EVENTTARGET': 'ctl00$ContentPlaceHolder1$ddlYear',
                 '__EVENTARGUMENT': '',
@@ -313,18 +307,16 @@ async def scrape_pib_asp_net(url, ministry=None, year=None, month=None, day=None
                 'ctl00$ContentPlaceHolder1$ddlYear': year_val,
                 'ctl00$ContentPlaceHolder1$ddlMonth': month_val,
                 'ctl00$ContentPlaceHolder1$ddlday': day_val,
-                'ctl00$ContentPlaceHolder1$ddlSector': '0', # Default to All Sector
+                'ctl00$ContentPlaceHolder1$ddlSector': '0', 
             }
             form_data.update(overrides)
 
-            # 4. POST the updated data
             async with session.post(url, data=form_data, ssl=False, timeout=30) as post_response:
                 if post_response.status != 200:
                     return []
                 post_content = await post_response.text()
                 post_soup = BeautifulSoup(post_content, "html.parser")
 
-                # 5. Parse results
                 content_area = post_soup.find('div', class_='content-area')
                 if content_area:
                     for li in content_area.find_all('li'):
@@ -333,7 +325,6 @@ async def scrape_pib_asp_net(url, ministry=None, year=None, month=None, day=None
                         
                         if link_tag and date_span:
                             href = link_tag.get('href', '')
-                            # Fix relative URLs
                             if href and not href.startswith('http'):
                                 if href.startswith('/'):
                                     href = f"https://www.pib.gov.in{href}"
@@ -347,12 +338,11 @@ async def scrape_pib_asp_net(url, ministry=None, year=None, month=None, day=None
                             })
 
     except Exception as e:
-        print(f"PIB ASP scraping error: {e}")
+        print(f"PIB scraping error: {e}")
     
     return results
 
 async def scrape_pib(ministry=None, year=None, month=None, day=None):
-    # Backgrounders URL
     url = "https://www.pib.gov.in/ViewBackgrounder.aspx?MenuId=51&reg=3&lang=1"
     data = await scrape_pib_asp_net(url, ministry, year, month, day)
     if data ==[]:
@@ -361,7 +351,6 @@ async def scrape_pib(ministry=None, year=None, month=None, day=None):
     return {'Backgrounders': data}
 
 async def scrape_pib_facts(ministry=None, year=None, month=None, day=None):
-    # Factsheets URL
     url = "https://www.pib.gov.in/AllFactsheet.aspx?MenuId=12&reg=3&lang=1"
     data = await scrape_pib_asp_net(url, ministry, year, month, day)
     if data ==[]:
@@ -370,19 +359,6 @@ async def scrape_pib_facts(ministry=None, year=None, month=None, day=None):
 
     return {'Backgrounders': data}
 
-
-
-#async def scrape_pib_facts(ministry=None, year=None, month=None, day=None):
-#    return await _scrape_pib_with_playwright(
-#        "https://pib.gov.in/AllFactsheet.aspx?MenuId=12=3&lang=1",
-#        ministry, year, month, day
- #   )
-
-#async def scrape_pib(ministry=None, year=None, month=None, day=None):
-#    return await _scrape_pib_with_playwright(
-#        "https://www.pib.gov.in/ViewBackgrounder.aspx?MenuId=51&reg=3&lang=1",
-#        ministry, year, month, day
-#    )
 
 
 TH_url = "https://learningcorner.epaper.thehindu.com/articles" 
@@ -614,16 +590,16 @@ async def parse_page_mea(content, days_ago_cutoff_date):
                         documents.append({
                             'title': title,
                             'url': doc_url,
-                            'date': date_obj.strftime("%B %d, %Y") # Store as string for template
+                            'date': date_obj.strftime("%B %d, %Y") 
                         })
                     else:
-                        continue_scraping = False # Found an old document, stop
-                        break # Stop processing this page further
+                        continue_scraping = False 
+                        break 
                 except ValueError:
                     print(f"Error parsing MEA date: {date_str_raw} for title '{title}'")
     else:
         print("MEA commonListing not found.")
-        continue_scraping = False # If structure changed, stop.
+        continue_scraping = False 
 
     return documents, continue_scraping
 
@@ -716,7 +692,7 @@ async def scrape_prs_india():
                                 'link_url': link_href
                             })
                 else:
-                    print("PRS India: right-banner not found or structure changed.")
+                    print("PRS India: right-banner not found.")
 
     except Exception as e:
         print(f"Error scraping PRS India: {e}")
@@ -727,6 +703,50 @@ async def scrape_prs_india():
 async def prs_india():
     scraped_cards = await scrape_prs_india() 
     return render_template('prsindia.html', cards=scraped_cards or [])
+
+
+async def scrape_prs_bills(session, search_keyword=None, year=None):
+    bills_data = []
+    try:
+        base_url = "https://prsindia.org/billtrack/parliament"
+        params = {}
+        if search_keyword:
+            params['BillActsBillsParliamentSearch[title]'] = search_keyword
+        if year:
+            params['BillActsBillsParliamentSearch[date_of_introduction]'] = year
+
+        async with session.get(base_url, params=params, timeout=20) as response:
+            if response.status != 200:
+                print(f"Failed to fetch PRS India bills data: {response.status}")
+                return []
+            content = await response.text()
+            soup = BeautifulSoup(content, "html.parser")
+
+            for row in soup.find_all('div', class_='views-row'):
+                title_tag = row.find('h3', class_='cate')
+                status_tag = row.find('div', class_='views-field-field-bill-status')
+
+                if title_tag and title_tag.a and status_tag:
+                    bill_url = title_tag.a['href']
+                    if not bill_url.startswith('http'):
+                        bill_url = f"https://prsindia.org{bill_url}" if bill_url.startswith('/') else f"https://prsindia.org/{bill_url}"
+                    
+                    bills_data.append({
+                        'title': title_tag.a.text.strip(),
+                        'url': bill_url,
+                        'status': status_tag.text.strip()
+                    })
+    except Exception as e:
+        print(f"Error scraping PRS India bills: {e}")
+    return bills_data
+
+@app.route('/prsindia_bills')
+async def prs_india_bills():
+    search_keyword = request.args.get('search', '')
+    year = request.args.get('year', '')
+    async with aiohttp.ClientSession() as session:
+        bills = await scrape_prs_bills(session, search_keyword, year)
+    return render_template('prsindia_bills.html', bills=bills, search_keyword=search_keyword, year=year)
 
 
 async def scrape_current_affairs_iasgyan():
@@ -779,7 +799,7 @@ async def scrape_current_affairs_iasgyan():
 
 
 async def scrape_AIR_sansad_tv_summaries_Iasgyan():
-    summaries_data = [] # Renamed
+    summaries_data = []
     try:
         url = "https://www.iasgyan.in/sansad-tv-air-summaries"
         async with aiohttp.ClientSession() as session:
@@ -790,46 +810,44 @@ async def scrape_AIR_sansad_tv_summaries_Iasgyan():
                 content = await response.text()
                 soup = BeautifulSoup(content, "html.parser")
 
-                for summary_block_item in soup.find_all('div', class_='content_bx'): # Renamed
+                for summary_block_item in soup.find_all('div', class_='content_bx'):
                     title_tag_sum = summary_block_item.find('div', class_='title').find('a') if summary_block_item.find('div', class_='title') else None
                     date_tag_sum = summary_block_item.find('li', class_='text-muted')
                     description_tag_sum = summary_block_item.find('div', class_='short_descr').find('ol') if summary_block_item.find('div', class_='short_descr') else None
                     read_more_tag_sum = summary_block_item.find('div', class_='readmore_btn').find('a') if summary_block_item.find('div', class_='readmore_btn') else None
 
                     if not (title_tag_sum and date_tag_sum and description_tag_sum and read_more_tag_sum):
-                        continue # Skip if essential elements are missing
+                        continue 
 
                     title_text = title_tag_sum.text.strip()
                     doc_url_sum = title_tag_sum['href']
                     
-                    # Clean and parse date string, e.g., "25 Sep, 2024" or "25 September, 2024"
-                    summary_date_str_raw = " ".join(date_tag_sum.text.strip().split()).replace(',', '') # "25 Sep 2024"
+                    summary_date_str_raw = " ".join(date_tag_sum.text.strip().split()).replace(',', '') 
                     try:
-                        # Try common formats, this might need adjustment based on actual site variations
-                        if len(summary_date_str_raw.split()[1]) == 3: # Short month name e.g. Sep
+                        if len(summary_date_str_raw.split()[1]) == 3:
                              parsed_date_sum = datetime.strptime(summary_date_str_raw, '%d %b %Y')
-                        else: # Full month name e.g. September
+                        else: 
                              parsed_date_sum = datetime.strptime(summary_date_str_raw, '%d %B %Y')
                     except ValueError:
                         print(f"IASGyan Summaries: Could not parse date '{summary_date_str_raw}' for '{title_text}'")
-                        parsed_date_sum = datetime.min # Fallback date for sorting if unparsable
+                        parsed_date_sum = datetime.min 
 
                     summary_points_list = [li.text.strip() for li in description_tag_sum.find_all('li')]
 
                     summaries_data.append({
                         'title': title_text,
                         'url': doc_url_sum,
-                        'date_obj': parsed_date_sum, # For sorting
-                        'date': parsed_date_sum.strftime('%d %b %Y') if parsed_date_sum != datetime.min else summary_date_str_raw, # Formatted string for display
+                        'date_obj': parsed_date_sum, 
+                        'date': parsed_date_sum.strftime('%d %b %Y') if parsed_date_sum != datetime.min else summary_date_str_raw,
                         'points': summary_points_list,
                         'read_more_url': read_more_tag_sum['href']
                     })
                 
-                summaries_data.sort(key=lambda x: x['date_obj'], reverse=True) # Sort by actual date object
-                return summaries_data[:3] # Return top 3 recent
+                summaries_data.sort(key=lambda x: x['date_obj'], reverse=True) 
+                return summaries_data[:3] 
     except Exception as e:
         print(f"Error scraping IASGyan Sansad TV summaries: {e}")
-    return summaries_data # Return whatever was collected or empty list
+    return summaries_data 
 
 
 async def scrape_indian_express_articles():
@@ -914,29 +932,29 @@ async def scrape_full_article(url):
                 content = await response.text()
                 soup = BeautifulSoup(content, "html.parser")
                 
-                content_div = soup.find('div', id='pcl-full-content') # Highly specific, might break
-                if not content_div: # Fallback or broader search
+                content_div = soup.find('div', id='pcl-full-content') 
+                if not content_div: 
                     content_div = soup.find('article') or soup.find('main') or soup.find('div', class_=re.compile(r'content|article-body|story'))
 
                 if not content_div:
                     print(f"Could not find main content container for {url}")
                     return f"<p>Content not found. Please visit <a href='{url}'>original article</a>.</p>"
                 
-                title_tag_full = soup.find(['h1', 'h2'], class_=re.compile(r'title|headline')) # Common title classes
-                if not title_tag_full: title_tag_full = soup.find('h1') # Generic h1
+                title_tag_full = soup.find(['h1', 'h2'], class_=re.compile(r'title|headline')) 
+                if not title_tag_full: title_tag_full = soup.find('h1') 
                 title_text_full = title_tag_full.get_text(strip=True) if title_tag_full else "Article"
                 
-                author_date_div = soup.find(['div','span'], class_=re.compile(r'editor|author|date|byline|meta')) # Common meta info classes
+                author_date_div = soup.find(['div','span'], class_=re.compile(r'editor|author|date|byline|meta')) 
                 author_date_text_full = author_date_div.get_text(separator=" ", strip=True) if author_date_div else ""
                 
-                # Extract and process paragraphs, headings, lists, blockquotes
+
                 elements = content_div.find_all(['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'li', 'blockquote', 'figure', 'table'])
                 formatted_content_parts = []
                 for elem in elements:
                     if elem.name in ['h1','h2','h3','h4','h5','h6']:
                         formatted_content_parts.append(f"<{elem.name}>{elem.get_text(strip=True)}</{elem.name}>")
                     elif elem.name == 'p':
-                        # Check if paragraph is inside a list item, if so, it's part of the li
+                        
                         if elem.find_parent('li'): 
                             continue 
                         formatted_content_parts.append(f"<p>{elem.get_text(separator=' ', strip=True)}</p>")
@@ -954,7 +972,6 @@ async def scrape_full_article(url):
                                 img_html += f"<figcaption>{caption.get_text(strip=True)}</figcaption>"
                             formatted_content_parts.append(f"<figure>{img_html}</figure>")
                     elif elem.name == 'table':
-                         # Basic table conversion; for complex tables, more work is needed
                         table_html = "<table>"
                         for tr in elem.find_all('tr'):
                             table_html += "<tr>"
@@ -978,16 +995,11 @@ async def scrape_full_article(url):
 
 @app.route('/article/<path:url>')
 async def show_article(url):
-    # Ensure the URL is complete if it was passed partially
     if not url.startswith('http'):
-        # This is a basic assumption; you might need a more robust way
-        # to reconstruct the URL if it's from a specific known domain.
-        # For now, we assume it's a full URL passed in the path.
-        # If not, this route might need the original domain.
         print(f"Warning: URL '{url}' might be partial. Assuming it's complete.")
 
-    full_content_html = await scrape_full_article(url) # Renamed
-    if full_content_html is None: # Should now return error HTML string
+    full_content_html = await scrape_full_article(url)
+    if full_content_html is None:
         full_content_html = f"<p>Failed to fetch article content for {url}.</p>"
     return render_template('full_article.html', content=full_content_html)
 
@@ -995,7 +1007,6 @@ async def show_article(url):
 async def scrape_insights_articles():
     articles_data_insights = []
     try:
-        # Updated URL for the main Answer Writing page
         url = 'https://www.insightsonindia.com/upsc-mains-answer-writing-2025-insights-ias/'
         
         headers = {
@@ -1032,31 +1043,30 @@ async def scrape_insights_articles():
     return articles_data_insights
 
 async def scrape_full_article_insight(article_url):
-    filtered_content_parts = [] # Renamed
+    filtered_content_parts = []
     try:
         async with aiohttp.ClientSession() as session:
             async with session.get(article_url, timeout=20) as response:
                 if response.status != 200:
                     print(f"Failed to fetch Insights article content from {article_url}: {response.status}")
-                    return None # Or some error indicator
+                    return None 
                 content = await response.text()
                 soup = BeautifulSoup(content, 'html.parser')
 
-                # The original logic was very specific (GS sections).
-                # A more general approach might be to find the main article body.
+
                 article_body = soup.find('div', class_=re.compile(r'entry-content|article-content|post-content'))
                 if not article_body:
                     print(f"Insights: Could not find article body for {article_url}")
                     return [{'type': 'p', 'text': 'Article content not found.'}]
 
-                current_section_text = None # Renamed
+                current_section_text = None
 
-                for tag_item in article_body.find_all(['h1','h2','h3', 'h4', 'p', 'ul', 'ol', 'blockquote', 'table']): # Added more tags
-                    if tag_item.name in ['h1','h2','h3','h4']: # Generic heading
+                for tag_item in article_body.find_all(['h1','h2','h3', 'h4', 'p', 'ul', 'ol', 'blockquote', 'table']):
+                    if tag_item.name in ['h1','h2','h3','h4']: 
                         current_section_text = tag_item.text.strip()
                         filtered_content_parts.append({'type': tag_item.name, 'text': current_section_text})
                     elif tag_item.name == 'p':
-                        # Add paragraph text, optionally under a section if logic requires
+                   
                         filtered_content_parts.append({'type': 'p', 'text': tag_item.text.strip()})
                     elif tag_item.name in ['ul', 'ol']:
                         items = [li.get_text(strip=True) for li in tag_item.find_all('li')]
@@ -1081,8 +1091,8 @@ async def scrape_full_article_insight(article_url):
 
 @app.route('/article_insight/<path:url>')
 async def show_article_insight(url):
-    full_content_data = await scrape_full_article_insight(url) # Renamed
-    if not full_content_data: # Check if None or empty
+    full_content_data = await scrape_full_article_insight(url) 
+    if not full_content_data: 
         return "Failed to load the Insights article content.", 404
     return render_template('full_article_insight.html', content=full_content_data)
 
@@ -1106,24 +1116,21 @@ async def scrape_orf_articles():
 
                 cutoff_orf = datetime.now(timezone.utc) - timedelta(days=45)
 
-                # Generic search for article cards to handle site changes
-                # We look for common container classes used in grid layouts
                 potential_articles = soup.find_all('div', class_=re.compile(r'col-|card|item|listing|post'))
                 
                 for article_block in potential_articles:
-                    # 1. Find Title (usually in h2 or h3)
                     title_tag = article_block.find(['h2', 'h3'])
                     if not title_tag: 
                         continue
                     
                     title_text = title_tag.get_text(strip=True)
-                    if not title_text or len(title_text) < 10: # Skip tiny/irrelevant headings
+                    if not title_text or len(title_text) < 10: 
                         continue
 
-                    # 2. Find Link (Check inside title, or parent of title, or anywhere in block)
+                   
                     link_tag = title_tag.find('a')
                     if not link_tag:
-                        # Check if the block itself is wrapped in an 'a' tag
+                       
                         link_tag = article_block.find('a')
                     
                     if not link_tag or not link_tag.get('href'):
@@ -1133,31 +1140,31 @@ async def scrape_orf_articles():
                     if not doc_url.startswith('http'):
                         doc_url = f"https://www.orfonline.org{doc_url}" if doc_url.startswith('/') else f"https://www.orfonline.org/{doc_url}"
 
-                    # 3. Find Date (Look for <time> or elements with 'date' class)
+                   
                     date_tag = article_block.find('time') or article_block.find(class_=re.compile(r'date|meta|time'))
                     article_date_obj = None
                     
                     if date_tag:
                         date_str = date_tag.get_text(strip=True)
                         try:
-                            # Parse "Sep 24, 2024" or "24 September 2024"
+                            
                             article_date_obj = datetime.strptime(date_str, "%b %d, %Y").replace(tzinfo=timezone.utc)
                         except ValueError:
                             try:
                                 article_date_obj = datetime.strptime(date_str, "%d %B %Y").replace(tzinfo=timezone.utc)
                             except ValueError:
-                                pass # Keep None if parsing fails
+                                pass 
                     
-                    # Fallback: If no date found, include it anyway if it looks like an article
+                   
                     if not article_date_obj:
-                         article_date_obj = datetime.now(timezone.utc) # Default to now if undatable
+                         article_date_obj = datetime.now(timezone.utc) 
 
                     if article_date_obj >= cutoff_orf:
-                        # 4. Find Description/Author
+                        
                         desc_tag = article_block.find('p')
                         desc_text = desc_tag.get_text(strip=True) if desc_tag else ""
                         
-                        # Prevent duplicates (simple check)
+                       
                         if any(a['link'] == doc_url for a in orf_articles_data):
                             continue
 
@@ -1167,13 +1174,13 @@ async def scrape_orf_articles():
                             'date_obj': article_date_obj,
                             'date': article_date_obj.strftime('%B %d, %Y'),
                             'description': desc_text,
-                            'author': "ORF" # Author extraction is often messy, defaulting to ORF
+                            'author': "ORF" 
                         })
 
     except Exception as e:
         print(f"Error scraping ORF articles: {e}")
     
-    # Deduplicate and sort
+    
     seen = set()
     unique_data = []
     for d in orf_articles_data:
@@ -1188,7 +1195,7 @@ async def scrape_orf_articles():
 async def scrape_forumias():
     sections_data = []
     try:
-        # Updated URL based on your input
+       
         url = "https://forumias.com/blog/7pm/"
         
         headers = {
@@ -1203,22 +1210,19 @@ async def scrape_forumias():
                 content = await response.text()
                 soup = BeautifulSoup(content, "html.parser")
 
-                # The new structure contains monthly tabs. We grab the first active output container.
-                # Usually the first .ajax-cat-archive-output contains the latest loaded month.
                 archive_container = soup.find('div', class_='ajax-cat-archive-output')
                 
                 if archive_container:
                     current_section_title = "Latest 7 PM Editorials"
                     articles_in_section = []
 
-                    # Iterate through the date groups (e.g., 27 NOV, 26 NOV)
                     for date_group in archive_container.find_all('div', class_='cat-archive-date-group'):
                         
-                        # Extract Date info (optional, just for context)
+                        
                         date_div = date_group.find('div', class_='post-date')
                         date_text = date_div.text.strip() if date_div else ""
                         
-                        # Find the list of articles for this date
+                     
                         ul_list = date_group.find('ul', class_='cat-archive-list')
                         if ul_list:
                             for li in ul_list.find_all('li'):
@@ -1301,7 +1305,7 @@ async def scrape_forumias_article(article_url):
                             content_parts_forum.append({'type': 'list', 'ordered': tag_name == 'ol', 'items': list_items})
                     
                     elif tag_name == 'table':
-                        # Simple table extraction
+                       
                         rows = []
                         for tr in element.find_all('tr'):
                             cells = [td.get_text(separator=" ", strip=True) for td in tr.find_all(['th', 'td'])]
@@ -1385,4 +1389,4 @@ async def scrape_TH_learning(article_url_th):
 
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=int(os.environ.get("PORT", 5000)))
+    app.run(debug=True, port=5000)

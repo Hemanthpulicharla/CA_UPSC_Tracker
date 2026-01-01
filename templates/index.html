@@ -17,13 +17,12 @@
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             transition: transform 0.3s ease-in-out;
         }
-        /* Removed hover transform to prevent jitter on toggle click */
         .card-header {
             background-color: #007bff;
             color: white;
             border-top-left-radius: 15px !important;
             border-top-right-radius: 15px !important;
-            cursor: pointer; /* Indicates toggleable */
+            cursor: pointer;
         }
         .playlist-item, .air-program, .website-article {
             background-color: white;
@@ -82,7 +81,6 @@
             background-color: #ffdc00;
             color: black;
         }
-        /* Icon rotation for toggle */
         .card-header .toggle-icon {
             transition: transform 0.3s;
         }
@@ -96,7 +94,7 @@
         <h1 class="text-center mb-4">Content Tracker</h1>
         <p class="text-center text-muted mb-5">Tracking content from the last 3 days</p>
 
-        <!-- YouTube Playlists -->
+        
         <div class="card mb-5">
             <div class="card-header text-center py-3" data-bs-toggle="collapse" data-bs-target="#collapseYoutube">
                 <h2 class="mb-0 d-flex justify-content-between align-items-center justify-content-center">
@@ -136,7 +134,6 @@
             </div>
         </div>
 
-        <!-- Website Watchout -->
         <div class="card mt-5">
             <div class="card-header text-center py-3" data-bs-toggle="collapse" data-bs-target="#collapseWatchout">
                 <h2 class="mb-0 d-flex justify-content-between align-items-center justify-content-center">
@@ -162,13 +159,16 @@
                             <div class="text-center">
                                 <a href="{{url_for('prs_india')}}"><h5>PRS India</h5></a>
                             </div>
+                            <hr class="vr" style="height: 50px; width: 1px; background-color: #ccc; margin: 0 20px;">
+                            <div class="text-center">
+                                <a href="{{url_for('prs_india_bills')}}"><h5>PRS Bills</h5></a>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- AIR Programs -->
         <div class="card mt-5">
             <div class="card-header text-center py-3" data-bs-toggle="collapse" data-bs-target="#collapseAIR">
                 <h2 class="mb-0 d-flex justify-content-between align-items-center justify-content-center">
@@ -225,7 +225,6 @@
             </div>
         </div>
 
-        <!-- IE-UPSC ESSENTIALS QUIZ -->
         <div class="card mt-5">
             <div class="card-header text-center py-3" data-bs-toggle="collapse" data-bs-target="#collapseIEQuiz">
                 <h2 class="mb-0 d-flex justify-content-between align-items-center justify-content-center">
@@ -254,8 +253,6 @@
                 </div>
             </div>
         </div>
-
-        <!-- FORUM CA -->
         <div class="card mt-5">
             <div class="card-header text-center py-3" data-bs-toggle="collapse" data-bs-target="#collapseForum">
                 <h2 class="mb-0 d-flex justify-content-between align-items-center justify-content-center">
@@ -284,8 +281,6 @@
                 </div>
             </div>
         </div>
-
-        <!-- ORF Articles -->
         <div class="card mt-5">
             <div class="card-header text-center py-3" data-bs-toggle="collapse" data-bs-target="#collapseORF">
                 <h2 class="mb-0 d-flex justify-content-between align-items-center justify-content-center">
@@ -313,7 +308,6 @@
             </div>
         </div>
 
-        <!-- Indian Express UPSC Articles -->
         <div class="card mt-5">
             <div class="card-header text-center py-3" data-bs-toggle="collapse" data-bs-target="#collapseIEArticles">
                 <h2 class="mb-0 d-flex justify-content-between align-items-center justify-content-center">
@@ -340,8 +334,6 @@
                 </div>
             </div>
         </div>
-
-        <!-- Insights SECURE -->
         <div class="card mt-5">
             <div class="card-header text-center py-3" data-bs-toggle="collapse" data-bs-target="#collapseInsights">
                 <h2 class="mb-0 d-flex justify-content-between align-items-center justify-content-center">
@@ -366,8 +358,6 @@
                 </div>
             </div>
         </div>
-
-        <!-- SANSAD TV & AIR Summaries -->
         <div class="card mt-5">
             <div class="card-header text-center py-3" data-bs-toggle="collapse" data-bs-target="#collapseSansad">
                 <h2 class="mb-0 d-flex justify-content-between align-items-center justify-content-center">
@@ -391,8 +381,6 @@
                 </div>
             </div>
         </div>
-
-        <!-- Reddit Tracker -->
         <div class="card mt-5">
             <div class="card-header text-center py-3" data-bs-toggle="collapse" data-bs-target="#collapseReddit">
                 <h2 class="mb-0 d-flex justify-content-between align-items-center justify-content-center">
@@ -426,7 +414,7 @@
             </div>
         </div>
 
-    </div> <!-- Correct closing of container -->
+    </div>
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
@@ -485,7 +473,6 @@
             items.forEach(item => container.appendChild(item));
         }
 
-        // Initial sort (descending order)
         sortPlaylists(false);
     </script>
 </body>
