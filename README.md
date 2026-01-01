@@ -18,8 +18,8 @@ Each transition meant:
 
 ### The Solution
 I realized I needed a **single source of truth** - one platform that aggregates quality current affairs from trusted sources, organized intelligently, and presented in a distraction-free environment. Not just another news aggregator, but a tool specifically designed for UPSC preparation workflow.
-
 *That's when this project was born*. 
+
 --- 
 
 ## Local Setup & Installation
@@ -79,7 +79,6 @@ Open your browser and navigate to `http://localhost:5000`.
 
 ---
 
-
 ## Disclaimer & Maintenance
 
 This tool relies on web scraping. Since the target websites frequently update their HTML structures, the scrapers might occasionally break or return empty results. This is a common technical hurdle in automated tracking.
@@ -89,8 +88,7 @@ If you notice a specific source is not updating or have suggestions for new feat
 **Contact Developer:** [pulicharlahemu@gmail.com](mailto:pulicharlahemu@gmail.com)
 
 ---
-***
 The code might not be perfect, the scrapers might occasionally break, but the intention is pure: to make one small part of this incredibly challenging journey a bit easier for all of us.
----
+
 *Built by an aspirant, for aspirants. Let's make the prep a bit more efficient.*
 Star ⭐ this repo if it helped you!
