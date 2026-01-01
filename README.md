@@ -18,7 +18,7 @@ Each transition meant:
 
 ### The Solution
 I realized I needed a **single source of truth** - one platform that aggregates quality current affairs from trusted sources, organized intelligently, and presented in a distraction-free environment. Not just another news aggregator, but a tool specifically designed for UPSC preparation workflow.
-*That's when this project was born*. 
+**That's when this project was born**. 
 
 --- 
 
