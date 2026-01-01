@@ -1392,8 +1392,4 @@ async def scrape_TH_learning(article_url_th):
 
 
 if __name__ == '__main__':
-<<<<<<< HEAD
     app.run(debug=True, port=5000)
-=======
-    app.run(debug=True, port=5000)
->>>>>>> 91306b3e5b0963aeac58a2ff69874e54620f291b
