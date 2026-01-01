@@ -711,9 +711,9 @@ async def scrape_prs_bills(session, search_keyword=None, year=None):
         base_url = "https://prsindia.org/billtrack/parliament"
         params = {}
         if search_keyword:
-            params['BillActsBillsParliamentSearch[title]'] = search_keyword
+            params['title'] = search_keyword
         if year:
-            params['BillActsBillsParliamentSearch[date_of_introduction]'] = year
+            params['field_date_of_introduction_value'] = year
 
         async with session.get(base_url, params=params, timeout=20) as response:
             if response.status != 200:
@@ -743,7 +743,7 @@ async def scrape_prs_bills(session, search_keyword=None, year=None):
 @app.route('/prsindia_bills')
 async def prs_india_bills():
     search_keyword = request.args.get('search', '')
-    year = request.args.get('year', '')
+    year = request.args.get('year', str(datetime.now().year))
     async with aiohttp.ClientSession() as session:
         bills = await scrape_prs_bills(session, search_keyword, year)
     return render_template('prsindia_bills.html', bills=bills, search_keyword=search_keyword, year=year)
@@ -1039,7 +1039,6 @@ async def scrape_insights_articles():
                         
     except Exception as e:
         print(f"Error scraping Insights Answer Writing links: {e}")
-    print(articles_data_insights)
     return articles_data_insights
 
 async def scrape_full_article_insight(article_url):
