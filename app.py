@@ -20,6 +20,10 @@ REDDIT_USER_AGENT = os.environ.get('REDDIT_USER_AGENT')
 app = Flask(__name__)
 cache = Cache(app, config={'CACHE_TYPE': 'simple'})
 
+<<<<<<< HEAD
+=======
+API_KEY = 'give you API Key'
+>>>>>>> 91306b3e5b0963aeac58a2ff69874e54620f291b
 YOUTUBE_API_URL = 'https://www.googleapis.com/youtube/v3/playlistItems'
 PLAYLIST_API_URL = 'https://www.googleapis.com/youtube/v3/playlists'
 WATCHED_VIDEOS_FILE = 'watched_videos.txt'
@@ -68,6 +72,12 @@ async def fetch_playlist_title(session, playlist_id):
         print(f"Error in fetch_playlist_title for {playlist_id}: {e}")
     return None
 
+<<<<<<< HEAD
+=======
+REDDIT_CLIENT_ID = 'GIve yours'
+REDDIT_CLIENT_SECRET = 'Give yours' 
+REDDIT_USER_AGENT = 'upsc_tracker by [account name]' 
+>>>>>>> 91306b3e5b0963aeac58a2ff69874e54620f291b
 
 reddit = praw.Reddit(
     client_id=REDDIT_CLIENT_ID,
@@ -1388,4 +1398,8 @@ async def scrape_TH_learning(article_url_th):
 
 
 if __name__ == '__main__':
+<<<<<<< HEAD
     app.run(debug=True, port=5000)
+=======
+    app.run(debug=True, port=5000)
+>>>>>>> 91306b3e5b0963aeac58a2ff69874e54620f291b
